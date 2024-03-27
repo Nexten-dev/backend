@@ -8,7 +8,7 @@ export class AuthController {
 
     @Post('register')
     async create(@Body() dto: AuthDto) {
-        return await this.authService.create(dto);
+        return this.authService.create(dto);
     }
 
     @HttpCode(200)
