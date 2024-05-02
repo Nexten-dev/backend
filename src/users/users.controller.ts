@@ -3,7 +3,6 @@ import { ParseIntPipe } from '@nestjs/common';
 import { ParseUUIDPipe } from '@nestjs/common';
 import { UserDto } from './dto/user.dto';
 import { UserServices } from './users.service';
-import { RegisterDto } from 'src/auth/dto/register.dto';
 
 @Controller('user')
 export class UserController {
@@ -11,11 +10,11 @@ export class UserController {
 
     @Get(':id')
     async getUser(@Param('id') id: string) {
-        return this.userService.findUser(id);
+        return this.userService.findUserByEmailOrId(id);
     }
 
     @Post()
-    async create(@Body() dto: RegisterDto) {
+    async create(@Body() dto: UserDto) {
         return this.userService.create(dto);
     }
 
