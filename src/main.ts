@@ -6,7 +6,7 @@ import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
-    app.use(cookieParser);
+    app.use(cookieParser());
     const configService: ConfigService = app.get(ConfigService);
     const PORT = configService.get('PORT');
     const config = new DocumentBuilder().setTitle('Auth').setDescription('').setVersion('1.0').addTag('auth').build();
