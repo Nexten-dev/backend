@@ -19,8 +19,10 @@ import { Response } from 'express';
 import { Token } from './interfaces';
 import { ConfigService } from '@nestjs/config';
 import { Cookie } from '../decorators/cookie.decorator';
+import { Request } from 'express';
+import { UserAgent } from 'src/decorators/user-agent.decorator';
 
-@ApiTags('Auth')
+@ApiTags('Регистрация и авторизация')
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -42,8 +44,7 @@ export class AuthController {
     @ApiOperation({ summary: 'авторизация' })
     @UsePipes(new ValidationPipe())
     @Post('login')
-    async login(@Body() dto: LoginDto, @Req() req: Request, @Res() res: Response) {
-        const agent = req.headers['user-agent'];
+    async login(@Body() dto: LoginDto, @Req() req: Request, @Res() res: Response, @UserAgent() agent: string) {
         const tokens = await this.authService.login(dto, agent);
         if (!tokens) {
             throw new BadRequestException(`Не получается авторизовать пользователя ${JSON.stringify(dto)}`);
@@ -53,11 +54,15 @@ export class AuthController {
     }
 
     @Get('refresh')
-    async refreshTokens(@Cookie('refreshtoken') refreshToken: string, req: Request, @Res() res: Response) {
+    async refreshTokens(
+        @Cookie('refreshtoken') refreshToken: string,
+        @Req() req: Request,
+        @Res() res: Response,
+        @UserAgent() agent: string,
+    ) {
         if (!refreshToken) {
             throw new UnauthorizedException();
         }
-        const agent = req.headers['user-agent'];
         const tokens = await this.authService.refreshTokens(refreshToken, agent);
 
         return tokens;
@@ -75,6 +80,7 @@ export class AuthController {
             secure: this.configService.get('NODE_ENV') === 'production',
             path: '/',
         });
+
         res.status(HttpStatus.CREATED).json(tokens);
     }
 }

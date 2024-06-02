@@ -6,10 +6,11 @@ import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
+    app.enableCors({ origin: `*`, credentials: true });
     app.use(cookieParser());
     const configService: ConfigService = app.get(ConfigService);
     const PORT = configService.get('PORT');
-    const config = new DocumentBuilder().setTitle('Auth').setDescription('').setVersion('1.0').addTag('auth').build();
+    const config = new DocumentBuilder().setTitle('API Rugram').setDescription('').setVersion('2.0').build();
     const document = SwaggerModule.createDocument(app, config);
 
     SwaggerModule.setup('api', app, document);

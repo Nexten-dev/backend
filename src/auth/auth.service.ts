@@ -19,7 +19,7 @@ export class AuthService {
     ) {}
 
     async register(dto: RegisterDto) {
-        const user = await this.userService.findUserByEmailOrId(dto.email);
+        const user = await this.userService.findUserByEmail(dto.email);
         if (user) {
             throw new UnauthorizedException(USER_DOUBLE_ERROR);
         }
@@ -28,16 +28,19 @@ export class AuthService {
     }
 
     async refreshTokens(refreshToken: string, agent: string): Promise<Tokens> {
-        const token = await this.authService.token.delete({ where: { token: refreshToken } });
+        const token = await this.authService.token.findUnique({ where: { token: refreshToken } });
+
         if (!token || new Date(token.exp) < new Date()) {
             throw new UnauthorizedException();
         }
-        const user = await this.userService.findUserByEmailOrId(token.userId);
+        await this.authService.token.delete({ where: { token: refreshToken } });
+
+        const user = await this.userService.findUserById(token.userId);
         return this.generateTokens(user, agent);
     }
 
     async login({ email, password }: LoginDto, userAgent: string) {
-        const user = await this.userService.findUserByEmailOrId(email);
+        const user = await this.userService.findUserByEmail(email);
         if (!user) {
             throw new UnauthorizedException(USER_NOT_FOUND_ERROR);
         }
@@ -54,13 +57,13 @@ export class AuthService {
         return { accessToken, refreshToken };
     }
 
-    async getRefreshToken(userId: string, userAgent): Promise<Token> {
+    async getRefreshToken(userId: number, userAgent): Promise<Token> {
         return this.authService.token.create({
             data: {
                 token: uuidv4(),
-                exp: add(new Date(), { months: 1 }),
+                exp: add(new Date(), { minutes: 15 }),
                 userId,
-                userAgent: userAgent,
+                userAgent,
             },
         });
     }
